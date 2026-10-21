@@ -1,0 +1,548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bellhop Tower</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: hotel cross-section on the left, front-desk ledger (shop) on the right; stacks on phones. Single dusk-city look, by choice. */
+:root{
+  --sky:#1f2d52; --sky2:#3b3f7a; --plum:#2e1d3a; --facade:#8fd3bd; --facade-d:#6bb9a1;
+  --gold:#f6c445; --gold-d:#d99a1c; --glass:#ffe9a8; --lilac:#efe9f7; --lilac-d:#ddd2ee;
+  --ink:#2e1d3a; --muted:#6c5a7c; --bad:#e2574c; --ok:#3fae7a; --white:#ffffff;
+  --display:"Bungee","Arial Black",Impact,sans-serif;
+  --body:"Nunito",ui-rounded,system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{min-height:100%}
+body{background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 70%,#55467e 100%);background-color:var(--sky);color:var(--lilac);font-family:var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 32px;}
+*{box-sizing:border-box}
+button{font:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.hud{max-width:1100px;margin:0 auto 18px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.brand{font-family:var(--display);font-size:clamp(22px,4vw,34px);color:var(--gold);letter-spacing:.02em;line-height:1;text-shadow:3px 3px 0 var(--plum)}
+.brand small{display:block;font-family:var(--body);font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--facade);text-shadow:none;margin-top:6px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--plum);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;min-width:88px}
+.stat b{font-family:var(--display);font-size:18px;color:var(--glass);font-variant-numeric:tabular-nums;font-weight:400}
+.stat span{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--facade)}
+.stat.coins b{color:var(--gold)}
+.stars{color:var(--gold);letter-spacing:2px}
+
+.game{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:22px;align-items:start}
+@media (max-width:840px){.game{grid-template-columns:minmax(0,1fr)}}
+
+.away{width:min(100%,560px);background:var(--gold);color:var(--plum);border-radius:14px;padding:14px 16px;margin-bottom:12px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;box-shadow:0 5px 0 var(--gold-d)}
+.away h3{font-family:var(--display);font-weight:400;font-size:16px;margin:0}
+.away p{margin:0;font-weight:700;font-size:13px}
+.away button{grid-row:1/span 2;grid-column:2;background:var(--plum);color:var(--gold);border-radius:10px;padding:10px 14px;font-family:var(--display);font-size:13px}
+
+/* Tower */
+.tower{display:flex;flex-direction:column;align-items:center;min-width:0}
+.roof{width:min(100%,520px);background:var(--plum);border-radius:14px 14px 0 0;padding:10px 12px 8px;text-align:center}
+.roof .sign{font-family:var(--display);color:var(--gold);font-size:18px;letter-spacing:.06em}
+.roof .keys{font-size:11px;font-weight:800;color:var(--facade);letter-spacing:.1em;text-transform:uppercase}
+.build{width:min(100%,520px);margin-bottom:8px;border:3px dashed rgba(239,233,247,.45);background:rgba(255,255,255,.05);color:var(--lilac);border-radius:14px;padding:12px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.build:hover:not(:disabled){background:rgba(255,255,255,.1);border-color:var(--gold)}
+.build:disabled{opacity:.5;cursor:not-allowed}
+.price{font-family:var(--display);font-weight:400;color:var(--gold);white-space:nowrap}
+.floors{width:min(100%,520px);display:flex;flex-direction:column}
+.floor{background:var(--facade);border-left:10px solid var(--plum);border-right:10px solid var(--plum);border-bottom:6px solid var(--facade-d);padding:8px;display:grid;grid-template-columns:24px repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+.fnum{font-family:var(--display);color:var(--plum);font-size:12px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg)}
+
+.room{position:relative;border-radius:8px;border:3px solid var(--plum);background:var(--glass);min-height:78px;padding:6px 6px 14px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;color:var(--ink);overflow:hidden;transition:transform .12s}
+.room:hover{transform:translateY(-2px)}
+.room.sel{box-shadow:0 0 0 3px var(--gold)}
+.room .rname{font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.room .pips{font-size:9px;letter-spacing:1px;color:var(--gold-d)}
+.room .tag{font-size:11px;font-weight:800;color:var(--muted)}
+.room .bar{position:absolute;left:0;bottom:0;height:6px;background:var(--plum);opacity:.8;width:0}
+.room.busy{background:#ffd47a}
+.room .guest{position:absolute;right:8px;bottom:12px;width:16px;height:24px;border-radius:8px 8px 3px 3px;background:var(--g,#7a5bd6)}
+.room .guest::before{content:"";position:absolute;left:3px;top:-10px;width:10px;height:10px;border-radius:50%;background:var(--g,#7a5bd6)}
+.room.vip .guest{box-shadow:0 0 0 2px var(--plum),0 0 10px var(--gold)}
+.room.paid{background:#fff3c9}
+.room .coin{position:absolute;right:8px;bottom:12px;width:26px;height:26px;border-radius:50%;background:var(--gold);border:3px solid var(--gold-d);animation:bob 1s ease-in-out infinite;display:grid;place-items:center;font-family:var(--display);font-size:11px;color:var(--plum)}
+.room.dirty{background:#b9b2a6}
+.room.dirty .tag{color:var(--plum)}
+.room.dirty::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 60%,rgba(80,60,40,.25) 0 6px,transparent 7px),radial-gradient(circle at 70% 40%,rgba(80,60,40,.2) 0 4px,transparent 5px),radial-gradient(circle at 55% 75%,rgba(80,60,40,.2) 0 5px,transparent 6px);pointer-events:none}
+.room.cleaning{background:#cfe9ff}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+.amen{width:min(100%,540px);background:var(--facade-d);border-left:10px solid var(--plum);border-right:10px solid var(--plum);padding:8px;display:flex;flex-wrap:wrap;gap:6px;min-height:20px}
+.amen:empty{display:none}
+.chip{background:var(--plum);color:var(--glass);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.chip b{color:var(--gold);font-weight:900}
+
+.lobby{width:min(100%,560px);background:var(--plum);border-radius:0 0 10px 10px;padding:12px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.bell{background:var(--gold);color:var(--plum);border-radius:12px;padding:10px 12px;font-family:var(--display);font-size:13px;box-shadow:0 4px 0 var(--gold-d);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px}
+.bell small{font-family:var(--body);font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bell:active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-d)}
+.bell:disabled{opacity:.5;cursor:not-allowed}
+.queue-wrap{min-width:0}
+.qlabel{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--facade);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.queue{display:flex;gap:6px;flex-wrap:wrap;min-height:38px;align-items:flex-end}
+.qg{position:relative;width:16px;height:22px;border-radius:7px 7px 3px 3px;background:var(--g);margin-top:12px}
+.qg::before{content:"";position:absolute;left:3px;top:-11px;width:10px;height:10px;border-radius:50%;background:var(--g)}
+.qg::after{content:"";position:absolute;left:0;bottom:-6px;height:3px;width:calc(var(--p)*16px);background:var(--bad);border-radius:2px}
+.qg.vip{box-shadow:0 0 8px var(--gold)}
+.street{width:min(100%,600px);height:12px;background:#1a1426;border-radius:0 0 6px 6px}
+.msg{min-height:22px;margin-top:10px;font-weight:700;color:var(--glass);text-align:center;font-size:13px}
+
+/* Ledger */
+.ledger{background:var(--lilac);color:var(--ink);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--lilac-d);border-radius:10px;padding:4px}
+.tab{background:none;color:var(--muted);font-weight:900;font-size:12px;padding:8px 4px;border-radius:7px;position:relative}
+.tab[aria-selected="true"]{background:var(--white);color:var(--plum)}
+.tab .dot{position:absolute;top:4px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--bad)}
+.ledger h2{font-family:var(--display);font-weight:400;font-size:14px;margin:4px 0 8px;color:var(--plum);letter-spacing:.03em}
+.group{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;background:var(--white);border-radius:10px;padding:10px 12px;border:2px solid var(--lilac-d)}
+.item .nm{font-weight:900;font-size:14px}
+.item .ds{font-size:12px;color:var(--muted);grid-column:1}
+.item .lv{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.buy{grid-row:1/span 3;grid-column:2;background:var(--plum);color:var(--gold);border-radius:9px;padding:8px 10px;font-family:var(--display);font-size:13px;min-width:78px;box-shadow:0 3px 0 #170e1e}
+.buy:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #170e1e}
+.buy:disabled{background:var(--lilac-d);color:var(--muted);box-shadow:none;cursor:not-allowed}
+.selbox{background:var(--white);border-radius:10px;padding:12px;border:2px dashed var(--lilac-d);font-size:13px;color:var(--muted)}
+.selbox strong{color:var(--ink)}
+.goal{background:var(--white);border-radius:10px;padding:10px 12px;border:2px solid var(--lilac-d);display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.goal.done{opacity:.55}
+.goal .nm{font-weight:800;font-size:13px}
+.goal .rw{font-family:var(--display);font-size:12px;color:var(--gold-d)}
+.goal .track{grid-column:1/-1;height:6px;background:var(--lilac-d);border-radius:3px;overflow:hidden}
+.goal .track i{display:block;height:100%;background:var(--ok)}
+.note{font-size:12px;color:var(--muted);margin:0}
+.foot{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.reset{background:none;color:var(--muted);text-decoration:underline;font-size:11px;padding:4px}
+.confirm{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.confirm button{border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px}
+.confirm .yes{background:var(--bad);color:var(--white)}
+.confirm .no{background:var(--lilac-d);color:var(--ink)}
+
+.float{position:fixed;pointer-events:none;font-family:var(--display);color:var(--gold);text-shadow:2px 2px 0 var(--plum);font-size:16px;animation:rise 1s ease-out forwards;z-index:20}
+@keyframes rise{to{transform:translateY(-44px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.room .coin{animation:none}.float{animation-duration:.01s}.room{transition:none}}
+</style>
+
+<header class="hud">
+  <div class="brand">Bellhop Tower<small>Grow a hotel, one floor at a time</small></div>
+  <div class="stats">
+    <div class="stat coins"><b id="sCoins">0</b><span>Coins</span></div>
+    <div class="stat"><b class="stars" id="sStars">★</b><span>Rating</span></div>
+    <div class="stat"><b id="sArr">0</b><span>Arrivals / min</span></div>
+    <div class="stat"><b id="sRate">0</b><span>Coins / min</span></div>
+    <div class="stat"><b id="sServed">0</b><span>Guests served</span></div>
+  </div>
+</header>
+
+<main class="game">
+  <section class="tower" aria-label="Your hotel">
+    <div class="away" id="away" hidden>
+      <h3 id="awayTitle">Welcome back</h3>
+      <p id="awayText"></p>
+      <button id="awayOk">Nice!</button>
+    </div>
+    <button class="build" id="buildBtn"><span id="buildLabel">+ Build a new floor (3 rooms)</span><span class="price" id="buildCost"></span></button>
+    <div class="roof"><div class="sign">BELLHOP TOWER</div><div class="keys" id="keysLine"></div></div>
+    <div class="floors" id="floors"></div>
+    <div class="amen" id="amenStrip"></div>
+    <div class="lobby">
+      <button class="bell" id="bell">DING!<small>Check in</small></button>
+      <div class="queue-wrap">
+        <div class="qlabel"><span>Lobby line</span><span id="qCount">0 / 4</span></div>
+        <div class="queue" id="queue"></div>
+      </div>
+    </div>
+    <div class="street"></div>
+    <div class="msg" id="msg">Ring the bell to check in your first guest.</div>
+  </section>
+
+  <aside class="ledger" aria-label="Upgrades">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="rooms" aria-selected="true">Rooms</button>
+      <button class="tab" role="tab" data-tab="staff" aria-selected="false">Staff</button>
+      <button class="tab" role="tab" data-tab="hotel" aria-selected="false">Hotel</button>
+      <button class="tab" role="tab" data-tab="goals" aria-selected="false">Goals</button>
+    </div>
+    <div data-pane="rooms">
+      <h2>Selected room</h2>
+      <div class="selbox" id="selbox">Tap a room to see its upgrade.</div>
+      <h2 style="margin-top:14px">Remodel everything</h2>
+      <div class="group" id="bulk"></div>
+    </div>
+    <div data-pane="staff" hidden>
+      <p class="note" style="margin-bottom:8px">Staff keep working while you're away, so a full team means you come back to a pile of coins.</p>
+      <div class="group" id="staff"></div>
+    </div>
+    <div data-pane="hotel" hidden>
+      <h2>Marketing &amp; lobby</h2>
+      <div class="group" id="hotel"></div>
+      <h2 style="margin-top:14px">Amenities</h2>
+      <p class="note" style="margin-bottom:8px">Earn coins every second, even while you're away.</p>
+      <div class="group" id="amen"></div>
+      <h2 style="margin-top:14px">Franchise</h2>
+      <div class="group" id="franchise"></div>
+    </div>
+    <div data-pane="goals" hidden>
+      <div class="group" id="goals"></div>
+    </div>
+    <div class="foot"><span>Progress saves in this browser.</span><span id="resetArea"><button class="reset" id="resetBtn">Start over</button></span></div>
+  </aside>
+</main>
+
+<script>
+const ROOMS=[
+  {name:"Cot",pay:12,stay:6},
+  {name:"Standard",pay:30,stay:7},
+  {name:"Deluxe",pay:72,stay:8},
+  {name:"Suite",pay:170,stay:9},
+  {name:"Penthouse",pay:400,stay:10},
+];
+const MAX_FLOORS=15;
+const STAFF=[
+  {id:"desk",name:"Receptionist",desc:"Checks guests in for you (faster each level)",base:120,mult:1.9,max:10},
+  {id:"clean",name:"Housekeeper",desc:"Cleans dirty rooms on their own",base:180,mult:1.9,max:10},
+  {id:"bell",name:"Bellhop",desc:"Collects coins from finished stays",base:300,mult:2,max:10},
+  {id:"mgr",name:"Manager",desc:"All staff work 25% faster per level",base:2500,mult:2.6,max:6},
+  {id:"door",name:"Doorman",desc:"Guests wait 30% longer per level, and VIPs show up more",base:900,mult:2.3,max:5},
+];
+const HOTEL=[
+  {id:"lobby",name:"Bigger lobby",desc:"+3 spots in the lobby line",base:100,mult:1.9,max:8},
+  {id:"ads",name:"Billboard ads",desc:"+35% more guests arriving",base:80,mult:1.8,max:12},
+  {id:"tv",name:"TV commercial",desc:"+60% more guests arriving",base:5000,mult:2.4,max:6},
+  {id:"spa",name:"Rooftop pool",desc:"+15% on every bill",base:600,mult:2.4,max:8},
+];
+const AMEN=[
+  {id:"vend",name:"Vending machine",desc:"+1 coin per second",per:1,base:150,mult:1.6,max:10},
+  {id:"cafe",name:"Lobby café",desc:"+6 coins per second",per:6,base:1500,mult:1.65,max:10},
+  {id:"arc",name:"Arcade",desc:"+25 coins per second",per:25,base:9000,mult:1.7,max:10},
+  {id:"ball",name:"Ballroom",desc:"+110 coins per second",per:110,base:60000,mult:1.75,max:10},
+  {id:"casino",name:"Sky lounge",desc:"+500 coins per second",per:500,base:400000,mult:1.8,max:10},
+];
+const GOALS=[
+  {id:"s10",txt:"Serve 10 guests",v:()=>S.served,t:10,r:100},
+  {id:"f2",txt:"Open floor 2",v:()=>S.floors.length,t:2,r:150},
+  {id:"a1",txt:"Open an amenity",v:()=>Object.values(S.amen).reduce((a,b)=>a+b,0),t:1,r:300},
+  {id:"s50",txt:"Serve 50 guests",v:()=>S.served,t:50,r:400},
+  {id:"v1",txt:"Host 5 VIP guests",v:()=>S.vips,t:5,r:800},
+  {id:"st5",txt:"Reach a 5-star rating",v:()=>stars(),t:5,r:1500},
+  {id:"s250",txt:"Serve 250 guests",v:()=>S.served,t:250,r:2000},
+  {id:"f5",txt:"Open floor 5",v:()=>S.floors.length,t:5,r:3000},
+  {id:"full",txt:"Have 90% of rooms full at once (4+ floors)",v:()=>{const a=allRooms();return S.floors.length>=4&&a.filter(([r])=>r.st==="busy").length>=a.length*0.9?1:0},t:1,r:6000},
+  {id:"s1000",txt:"Serve 1,000 guests",v:()=>S.served,t:1000,r:10000},
+  {id:"p1",txt:"Remodel a Penthouse",v:()=>allRooms().filter(([r])=>r.lvl===4).length,t:1,r:15000},
+  {id:"f8",txt:"Open floor 8",v:()=>S.floors.length,t:8,r:25000},
+  {id:"v50",txt:"Host 50 VIP guests",v:()=>S.vips,t:50,r:40000},
+  {id:"s5000",txt:"Serve 5,000 guests",v:()=>S.served,t:5000,r:60000},
+  {id:"f12",txt:"Open floor 12",v:()=>S.floors.length,t:12,r:200000},
+  {id:"k1",txt:"Sell your first tower",v:()=>S.keys>0?1:0,t:1,r:50000},
+  {id:"s20000",txt:"Serve 20,000 guests",v:()=>S.served,t:20000,r:500000},
+  {id:"f15",txt:"Top out at floor 15",v:()=>S.floors.length,t:15,r:2000000},
+];
+const fmt=n=>n>=1e12?(n/1e12).toFixed(2)+"T":n>=1e9?(n/1e9).toFixed(2)+"B":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e4?(n/1e3).toFixed(1)+"k":Math.floor(n).toLocaleString();
+const cost=(def,lvl)=>Math.round(def.base*Math.pow(def.mult,lvl));
+const floorCost=n=>Math.round(150*Math.pow(2.15,n-1));
+const roomUpCost=l=>Math.round(45*Math.pow(2.6,l));
+const hues=["#7a5bd6","#e2574c","#2f8fd8","#e88a2a","#c24fa3","#2b9d8f","#5c6bc0"];
+const newRoom=()=>({lvl:0,st:"free",t:0,dur:1,pay:0,g:null,vip:false});
+const MAX_AWAY=12*3600;
+
+let S;
+function fresh(){return{coins:40,served:0,vips:0,rep:3,floors:[[newRoom(),newRoom(),newRoom()]],queue:[],arrAcc:0,
+  staff:{desk:0,clean:0,bell:0,mgr:0,door:0},hotel:{lobby:0,ads:0,tv:0,spa:0},amen:{vend:0,cafe:0,arc:0,ball:0,casino:0},
+  timers:{desk:0,clean:0,bell:0},earnLog:[],arrLog:[],claimed:[],keys:0,towerEarned:0,play:0,clock:0,lastSeen:Date.now()}}
+function migrate(o){
+  const f=fresh();if(!o)return f;
+  for(const k in f){if(o[k]===undefined)o[k]=f[k]}
+  for(const g of ["staff","hotel","amen","timers"])for(const k in f[g])if(o[g][k]===undefined)o[g][k]=f[g][k];
+  o.floors.forEach(fl=>fl.forEach(r=>{if(r.vip===undefined)r.vip=false}));
+  return o;
+}
+function load(){try{const r=localStorage.getItem("bellhop-tower-v1");if(r)return JSON.parse(r)}catch(e){}return null}
+function save(){S.lastSeen=Date.now();try{localStorage.setItem("bellhop-tower-v1",JSON.stringify(S))}catch(e){}}
+
+const $=id=>document.getElementById(id);
+let sel=null,msgT=0;
+function say(t){$("msg").textContent=t;msgT=4}
+function floatAt(el,txt){if(document.hidden)return;const r=el.getBoundingClientRect();const f=document.createElement("div");f.className="float";f.textContent=txt;f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top+8)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1000)}
+
+// ---- Formulas ----
+const stars=()=>Math.max(1,Math.min(5,Math.round(S.rep)));
+const queueCap=()=>4+S.hotel.lobby*3+S.floors.length;
+const patience=(vip)=>(18+S.hotel.lobby*3)*(1+S.staff.door*0.3)*(vip?0.6:1);
+const keyBoost=()=>1+S.keys*0.1;
+// Fame grows as you serve guests and as time passes, up to 3x.
+const fame=()=>1+Math.min(2,S.served/600+S.play/3600);
+// Guests per second
+function arrivalRate(){
+  return 0.22*(1+S.hotel.ads*0.35)*(1+S.hotel.tv*0.6)*(0.55+0.45*S.floors.length)*fame()*(0.8+stars()*0.08)*(1+S.keys*0.05);
+}
+const billMult=()=>(0.8+stars()*0.1)*(1+S.hotel.spa*0.15)*keyBoost();
+const passive=()=>AMEN.reduce((a,d)=>a+d.per*S.amen[d.id],0)*keyBoost();
+const mgr=()=>1+S.staff.mgr*0.25;
+const vipChance=()=>0.06+S.staff.door*0.03;
+const keysForSale=()=>Math.floor(Math.sqrt(S.towerEarned/40000));
+
+function allRooms(){const a=[];S.floors.forEach((f,fi)=>f.forEach((r,ri)=>a.push([r,fi,ri])));return a}
+function checkIn(manual){
+  if(!S.queue.length){if(manual)say("Nobody's waiting in the lobby yet.");return false}
+  const free=allRooms().filter(([r])=>r.st==="free").sort((a,b)=>b[0].lvl-a[0].lvl)[0];
+  if(!free){if(manual)say("Every room is busy or dirty. Clean up or build another floor.");return false}
+  // VIPs jump the line
+  let i=S.queue.findIndex(g=>g.vip);if(i<0)i=0;
+  const g=S.queue.splice(i,1)[0],r=free[0];
+  r.st="busy";r.t=0;r.dur=ROOMS[r.lvl].stay;r.g=g.c;r.vip=g.vip;
+  S.rep=Math.min(5,S.rep+0.02);
+  return true;
+}
+function earn(amt){S.coins+=amt;S.towerEarned+=amt;S.earnLog.push([S.clock,amt])}
+function collect(r,el){
+  const amt=r.pay;earn(amt);r.pay=0;r.st="dirty";r.t=0;r.vip=false;
+  if(el)floatAt(el,"+"+fmt(amt));
+}
+function startClean(r,speed){r.st="cleaning";r.t=0;r.dur=Math.max(0.5,2.2/speed)}
+
+// ---- Simulation step (used live and to catch up on time away) ----
+function step(dt,away){
+  S.play+=dt;S.clock=(S.clock||0)+dt;
+  // arrivals
+  S.arrAcc+=arrivalRate()*dt*(0.6+Math.random()*0.8);
+  while(S.arrAcc>=1){S.arrAcc-=1;S.arrLog.push(S.clock);
+    if(S.queue.length<queueCap()){const vip=Math.random()<vipChance();S.queue.push({c:vip?"#f6c445":hues[Math.floor(Math.random()*hues.length)],w:0,vip})}
+  }
+  // patience
+  for(let i=S.queue.length-1;i>=0;i--){const g=S.queue[i];g.w+=dt;if(g.w>=patience(g.vip)){S.queue.splice(i,1);
+    if(!away){S.rep=Math.max(1,S.rep-(g.vip?0.4:0.2));say(g.vip?"A VIP stormed out after waiting too long!":"A guest got tired of waiting and left. Your rating dipped.")}}}
+  // rooms
+  for(const [r] of allRooms()){
+    if(r.st==="busy"||r.st==="cleaning"){r.t+=dt;
+      if(r.t>=r.dur){
+        if(r.st==="busy"){r.st="paid";r.pay=Math.round(ROOMS[r.lvl].pay*billMult()*(r.vip?3:1));if(r.vip)S.vips++;r.g=null;S.served++}
+        else r.st="free";
+      }
+    }
+  }
+  // staff: each level adds actions per second; Manager speeds everyone up
+  const T=S.timers,m=mgr();
+  if(S.staff.desk){T.desk+=dt*0.5*S.staff.desk*m;while(T.desk>=1){T.desk-=1;if(!checkIn(false)){T.desk=0;break}}}
+  if(S.staff.clean){T.clean+=dt*0.45*S.staff.clean*m;while(T.clean>=1){T.clean-=1;const d=allRooms().find(([r])=>r.st==="dirty");if(!d){T.clean=0;break}startClean(d[0],(1+S.staff.clean*0.5)*m)}}
+  if(S.staff.bell){T.bell+=dt*0.55*S.staff.bell*m;while(T.bell>=1){T.bell-=1;const p=allRooms().find(([r])=>r.st==="paid");if(!p){T.bell=0;break}collect(p[0],away?null:$(`room-${p[1]}-${p[2]}`))}}
+  // amenities
+  const pv=passive();if(pv)earn(pv*dt);
+}
+
+function catchUp(sec){
+  sec=Math.min(sec,MAX_AWAY);if(sec<1)return;
+  const c0=S.coins,s0=S.served;
+  let left=sec;while(left>0){const d=Math.min(1,left);step(d,true);left-=d}
+  // trim logs so per-minute stats stay sane
+  const cut=S.clock-60;S.earnLog=S.earnLog.filter(e=>e[0]>cut);S.arrLog=S.arrLog.filter(t=>t>cut);
+  if(sec>=20){
+    const got=S.coins-c0,served=S.served-s0;
+    const h=Math.floor(sec/3600),mn=Math.floor(sec%3600/60);
+    $("awayTitle").textContent="While you were away";
+    let t=`${h?h+"h ":""}${mn}m passed. You earned ${fmt(got)} coins and served ${fmt(served)} guests.`;
+    if(!S.staff.desk||!S.staff.bell||!S.staff.clean)t+=" Hire a Receptionist, Housekeeper and Bellhop to earn much more while you're gone.";
+    if(sec>=MAX_AWAY)t+=" (Away earnings cap at 12 hours.)";
+    $("awayText").textContent=t;$("away").hidden=false;
+  }
+  if(S.floors.length*3!==roomEls.length)buildFloors();
+}
+
+// ---- Tower DOM ----
+let roomEls=[];
+function buildFloors(){
+  const wrap=$("floors");wrap.innerHTML="";roomEls=[];
+  for(let fi=S.floors.length-1;fi>=0;fi--){
+    const fl=document.createElement("div");fl.className="floor";
+    fl.innerHTML=`<div class="fnum">FL ${fi+1}</div>`;
+    S.floors[fi].forEach((r,ri)=>{
+      const b=document.createElement("button");b.className="room";b.id=`room-${fi}-${ri}`;
+      b.innerHTML=`<div><div class="rname"></div><div class="pips"></div></div><div class="tag"></div><span class="guest"></span><span class="coin">$</span><span class="bar"></span>`;
+      b.addEventListener("click",()=>tapRoom(fi,ri,b));
+      fl.appendChild(b);roomEls.push([b,fi,ri]);
+    });
+    wrap.appendChild(fl);
+  }
+}
+function tapRoom(fi,ri,el){
+  const r=S.floors[fi][ri];
+  if(r.st==="paid")collect(r,el);
+  else if(r.st==="dirty"){startClean(r,1);say("Scrubbing…")}
+  sel=[fi,ri];showTab("rooms");renderSel();
+}
+function paintRooms(){
+  for(const [b,fi,ri] of roomEls){
+    const r=S.floors[fi][ri];if(!r)continue;const L=ROOMS[r.lvl];
+    b.className="room "+r.st+(r.vip&&r.st==="busy"?" vip":"")+(sel&&sel[0]===fi&&sel[1]===ri?" sel":"");
+    b.querySelector(".rname").textContent=L.name;
+    b.querySelector(".pips").textContent="★".repeat(r.lvl+1);
+    const tag={free:"Vacant",busy:r.vip?"VIP staying":"Guest staying",paid:"Tap to collect",dirty:"Tap to clean",cleaning:"Cleaning…"}[r.st];
+    b.querySelector(".tag").textContent=tag;
+    b.querySelector(".coin").style.display=r.st==="paid"?"":"none";
+    b.querySelector(".guest").style.display=r.st==="busy"?"":"none";
+    if(r.g)b.style.setProperty("--g",r.g);
+    b.querySelector(".bar").style.width=(r.st==="busy"||r.st==="cleaning")?Math.min(100,r.t/r.dur*100)+"%":"0";
+    b.setAttribute("aria-label",`Floor ${fi+1} ${L.name}: ${tag}`);
+  }
+}
+function paintQueue(){
+  const q=$("queue");
+  while(q.children.length<S.queue.length){const d=document.createElement("span");d.className="qg";q.appendChild(d)}
+  while(q.children.length>S.queue.length)q.lastChild.remove();
+  S.queue.forEach((g,i)=>{const d=q.children[i];d.className="qg"+(g.vip?" vip":"");d.style.setProperty("--g",g.c);d.style.setProperty("--p",Math.min(1,g.w/patience(g.vip)).toFixed(2))});
+  $("qCount").textContent=`${S.queue.length} / ${queueCap()} waiting${S.queue.some(g=>g.vip)?" · VIP in line!":""}`;
+}
+function renderAmenStrip(){
+  $("amenStrip").innerHTML=AMEN.filter(d=>S.amen[d.id]).map(d=>`<span class="chip">${d.name} <b>Lv ${S.amen[d.id]}</b></span>`).join("");
+}
+
+// ---- Ledger ----
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.tab===name));
+  document.querySelectorAll("[data-pane]").forEach(p=>p.hidden=p.dataset.pane!==name);
+  if(name==="goals")renderGoals();
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showTab(t.dataset.tab)));
+
+function shopItem(def,group){
+  const lvl=S[group][def.id],maxed=lvl>=def.max,c=cost(def,lvl);
+  return `<div class="item"><div class="nm">${def.name}</div><div class="ds">${def.desc}</div><div class="lv">Level ${lvl} / ${def.max}</div>
+  <button class="buy" id="buy-${def.id}" data-g="${group}" data-id="${def.id}" ${maxed||S.coins<c?"disabled":""}>${maxed?"MAX":fmt(c)}</button></div>`;
+}
+const GROUPS=[[STAFF,"staff"],[HOTEL,"hotel"],[AMEN,"amen"]];
+function renderShop(){
+  $("staff").innerHTML=STAFF.map(d=>shopItem(d,"staff")).join("");
+  $("hotel").innerHTML=HOTEL.map(d=>shopItem(d,"hotel")).join("");
+  $("amen").innerHTML=AMEN.map(d=>shopItem(d,"amen")).join("");
+  renderBulk();renderFranchise();renderAmenStrip();
+  $("keysLine").textContent=S.keys?`${S.keys} gold key${S.keys>1?"s":""} · +${S.keys*10}% bills`:"";
+}
+function cheapestUpgrades(){
+  // All vacant rooms below max, cheapest first
+  return allRooms().filter(([r])=>r.lvl<4).sort((a,b)=>a[0].lvl-b[0].lvl);
+}
+function renderBulk(){
+  const list=cheapestUpgrades();
+  if(!list.length){$("bulk").innerHTML=`<p class="note">Every room is a Penthouse. Impressive.</p>`;return}
+  const lowest=list[0][0].lvl,count=list.filter(([r])=>r.lvl===lowest).length;
+  $("bulk").innerHTML=`<div class="item"><div class="nm">Remodel all ${ROOMS[lowest].name}s</div><div class="ds">${count} room${count>1?"s":""} → ${ROOMS[lowest+1].name}. Rooms with guests are done when they check out.</div><div class="lv">${fmt(roomUpCost(lowest))} each</div><button class="buy" id="bulkBtn">${fmt(roomUpCost(lowest)*count)}</button></div>`;
+  $("bulkBtn").onclick=()=>{
+    let n=0;for(const [r] of list){if(r.lvl!==lowest)continue;const c=roomUpCost(r.lvl);if(S.coins<c)break;S.coins-=c;r.lvl++;n++}
+    say(n?`Remodeled ${n} room${n>1?"s":""}.`:"Not enough coins yet.");renderBulk();renderSel();save();
+  };
+}
+let franchiseConfirm=false;
+function renderFranchise(){
+  const k=keysForSale(),ready=S.floors.length>=8;
+  let h=`<div class="item"><div class="nm">Sell the tower</div><div class="ds">${ready?`Start over with a new tower and keep <strong>${k}</strong> gold key${k===1?"":"s"}. Each key gives +10% bills, +10% amenity income and +5% arrivals forever.`:"Unlocks at 8 floors. Selling starts a new tower but you keep gold keys that boost every future tower."}</div><div class="lv">Keys owned: ${S.keys}</div><button class="buy" id="sellBtn" ${!ready||k<1?"disabled":""}>${ready?`+${k} KEYS`:"8 FLOORS"}</button></div>`;
+  if(franchiseConfirm)h+=`<div class="confirm"><span class="note">Sell and start a new tower? Coins, floors, staff and amenities reset.</span><button class="yes" id="sellYes">Sell</button><button class="no" id="sellNo">Keep</button></div>`;
+  $("franchise").innerHTML=h;
+  const b=$("sellBtn");if(b)b.onclick=()=>{franchiseConfirm=true;renderFranchise()};
+  if(franchiseConfirm){
+    $("sellYes").onclick=()=>{const keep={served:S.served,vips:S.vips,claimed:S.claimed,keys:S.keys+keysForSale(),play:S.play};
+      S=Object.assign(fresh(),keep);sel=null;franchiseConfirm=false;buildFloors();renderShop();renderSel();save();say(`Sold! You now hold ${S.keys} gold keys.`)};
+    $("sellNo").onclick=()=>{franchiseConfirm=false;renderFranchise()};
+  }
+}
+function renderGoals(){
+  const open=GOALS.filter(g=>!S.claimed.includes(g.id)),done=GOALS.filter(g=>S.claimed.includes(g.id));
+  $("goals").innerHTML=open.slice(0,6).map(g=>{const v=Math.min(g.t,g.v());return `<div class="goal"><div class="nm">${g.txt}</div><div class="rw">+${fmt(g.r)}</div><div class="track"><i style="width:${v/g.t*100}%"></i></div></div>`}).join("")
+    +`<p class="note">${done.length} of ${GOALS.length} goals complete. Rewards pay out automatically.</p>`;
+}
+function checkGoals(){
+  for(const g of GOALS){if(S.claimed.includes(g.id))continue;if(g.v()>=g.t){S.claimed.push(g.id);earn(g.r);say(`Goal complete: ${g.txt}! +${fmt(g.r)} coins`);
+    if(!document.querySelector('[data-pane="goals"]').hidden)renderGoals()}}
+}
+function refreshButtons(){
+  for(const [defs,g] of GROUPS)for(const d of defs){const b=$("buy-"+d.id);if(!b)continue;const lvl=S[g][d.id];b.disabled=lvl>=d.max||S.coins<cost(d,lvl)}
+  const nb=floorCost(S.floors.length),maxed=S.floors.length>=MAX_FLOORS;
+  $("buildCost").textContent=maxed?"MAX":fmt(nb);$("buildBtn").disabled=maxed||S.coins<nb;
+  const ub=$("upRoom");if(ub&&sel){const r=S.floors[sel[0]]?.[sel[1]];if(r)ub.disabled=r.lvl>=4||r.st!=="free"||S.coins<roomUpCost(r.lvl)}
+  const bb=$("bulkBtn");if(bb){const list=cheapestUpgrades();bb.disabled=!list.length||S.coins<roomUpCost(list[0][0].lvl)}
+  const sb=$("sellBtn");if(sb&&S.floors.length>=8){const k=keysForSale();sb.disabled=k<1;sb.textContent=`+${k} KEYS`}
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".buy[data-g]");if(!b||b.disabled)return;
+  const g=b.dataset.g,defs=GROUPS.find(x=>x[1]===g)[0],d=defs.find(x=>x.id===b.dataset.id),lvl=S[g][d.id],c=cost(d,lvl);
+  if(S.coins>=c&&lvl<d.max){S.coins-=c;S[g][d.id]++;say(`${d.name} upgraded to level ${lvl+1}.`);renderShop();save()}
+});
+function renderSel(){
+  const box=$("selbox");
+  if(!sel||!S.floors[sel[0]]){box.innerHTML="Tap a room to see its upgrade.";return}
+  const r=S.floors[sel[0]][sel[1]],L=ROOMS[r.lvl],N=ROOMS[r.lvl+1];
+  let h=`<strong>Floor ${sel[0]+1} · ${L.name}</strong><br>Bill ${fmt(L.pay*billMult())} coins (VIPs pay 3×) · ${L.stay}s stay`;
+  if(N)h+=`<div class="item" style="margin-top:10px"><div class="nm">Remodel to ${N.name}</div><div class="ds">Bill rises to ${fmt(N.pay*billMult())}${r.st!=="free"?" · room must be vacant and clean":""}</div><div class="lv">Room level ${r.lvl+1} / 5</div><button class="buy" id="upRoom">${fmt(roomUpCost(r.lvl))}</button></div>`;
+  else h+=`<br><strong>Fully remodeled.</strong>`;
+  box.innerHTML=h;
+  const ub=$("upRoom");if(ub)ub.addEventListener("click",()=>{
+    const c=roomUpCost(r.lvl);if(r.st==="free"&&r.lvl<4&&S.coins>=c){S.coins-=c;r.lvl++;say(`Remodeled into a ${ROOMS[r.lvl].name}!`);renderSel();renderBulk();save()}
+  });
+  refreshButtons();
+}
+
+$("buildBtn").addEventListener("click",()=>{
+  const c=floorCost(S.floors.length);
+  if(S.coins>=c&&S.floors.length<MAX_FLOORS){S.coins-=c;S.floors.push([newRoom(),newRoom(),newRoom()]);buildFloors();renderBulk();say(`Floor ${S.floors.length} is open for business. More guests will come now.`);save()}
+});
+$("bell").addEventListener("click",()=>{if(checkIn(true))say("Welcome to Bellhop Tower!")});
+$("awayOk").addEventListener("click",()=>{$("away").hidden=true});
+function wireReset(){
+  $("resetBtn").addEventListener("click",()=>{
+    $("resetArea").innerHTML=`<span class="confirm">Erase everything, keys included? <button class="yes" id="rYes">Erase</button><button class="no" id="rNo">Keep</button></span>`;
+    $("rYes").onclick=()=>{S=fresh();sel=null;buildFloors();renderShop();renderSel();save();restoreReset();say("Fresh start. Ring the bell!")};
+    $("rNo").onclick=restoreReset;
+  });
+}
+function restoreReset(){$("resetArea").innerHTML=`<button class="reset" id="resetBtn">Start over</button>`;wireReset()}
+
+// ---- Loop ----
+let last=Date.now(),saveT=0,uiT=0;
+function frame(){
+  const now=Date.now();let dt=(now-last)/1000;last=now;
+  if(dt>1.5){catchUp(dt);dt=0}
+  if(dt>0)step(dt,false);
+  // HUD
+  const cut=S.clock-60;
+  if(S.earnLog.length>400||S.earnLog[0]?.[0]<cut)S.earnLog=S.earnLog.filter(e=>e[0]>cut);
+  if(S.arrLog.length&&S.arrLog[0]<cut)S.arrLog=S.arrLog.filter(t=>t>cut);
+  $("sCoins").textContent=fmt(S.coins);$("sServed").textContent=fmt(S.served);
+  $("sStars").textContent="★".repeat(stars())+"☆".repeat(5-stars());
+  $("sRate").textContent=fmt(S.earnLog.reduce((a,e)=>a+e[1],0));
+  $("sArr").textContent=(arrivalRate()*60).toFixed(arrivalRate()*60<10?1:0);
+  $("bell").disabled=!S.queue.length;
+  if(msgT>0){msgT-=dt;if(msgT<=0)$("msg").textContent=hint()}
+  paintRooms();paintQueue();refreshButtons();
+  uiT+=dt;if(uiT>1){uiT=0;checkGoals();if(!document.querySelector('[data-pane="goals"]').hidden)renderGoals()}
+  saveT+=dt;if(saveT>3){saveT=0;save()}
+  requestAnimationFrame(frame);
+}
+function hint(){
+  if(S.served<3)return"Ring the bell to check guests in, then tap rooms to collect and clean.";
+  if(!S.staff.desk)return"Tip: hire a Receptionist so guests check in on their own.";
+  if(S.floors.length<2)return"Tip: more floors bring more guests, not just more rooms.";
+  if(!S.staff.bell)return"Tip: a Bellhop collects coins for you, even while you're away.";
+  return"";
+}
+// When the tab is hidden the browser pauses the game, so catch up the moment it comes back.
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){save()}
+  else{const now=Date.now(),gap=(now-last)/1000;last=now;if(gap>1.5){catchUp(gap);save()}}
+});
+window.addEventListener("pagehide",save);
+
+function start(data){
+  S=migrate((data&&data.state)||load());S.earnLog=[];S.arrLog=[];if(S.clock===undefined)S.clock=0;
+  buildFloors();renderShop();renderSel();wireReset();
+  $("msg").textContent=hint();
+  const gap=(Date.now()-(S.lastSeen||Date.now()))/1000;
+  last=Date.now();
+  if(gap>1.5){catchUp(gap);save()}
+  requestAnimationFrame(frame);
+}
+window.claude?.hot?.snapshot?.(()=>({state:S}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body></html>
