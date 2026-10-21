@@ -1,0 +1,355 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bellhop Tower</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: hotel cross-section on the left, front-desk ledger (shop) on the right; stacks on phones. Single dusk-city look, by choice. */
+:root{
+  --sky:#1f2d52; --sky2:#3b3f7a; --plum:#2e1d3a; --facade:#8fd3bd; --facade-d:#6bb9a1;
+  --gold:#f6c445; --gold-d:#d99a1c; --glass:#ffe9a8; --lilac:#efe9f7; --lilac-d:#ddd2ee;
+  --ink:#2e1d3a; --muted:#6c5a7c; --bad:#e2574c; --ok:#3fae7a;
+  --display:"Bungee","Arial Black",Impact,sans-serif;
+  --body:"Nunito",ui-rounded,system-ui,sans-serif;
+  color-scheme:dark;
+}
+html,body{min-height:100%}
+body{background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 70%,#55467e 100%);background-color:var(--sky);color:var(--lilac);font-family:var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 32px;}
+*{box-sizing:border-box}
+button{font:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.hud{max-width:1080px;margin:0 auto 18px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between}
+.brand{font-family:var(--display);font-size:clamp(22px,4vw,34px);color:var(--gold);letter-spacing:.02em;line-height:1;text-shadow:3px 3px 0 var(--plum)}
+.brand small{display:block;font-family:var(--body);font-weight:800;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--facade);text-shadow:none;margin-top:6px}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--plum);border-radius:12px;padding:8px 14px;display:flex;flex-direction:column;min-width:96px}
+.stat b{font-family:var(--display);font-size:20px;color:var(--glass);font-variant-numeric:tabular-nums;font-weight:400}
+.stat span{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--facade)}
+.stat.coins b{color:var(--gold)}
+.stars{color:var(--gold);letter-spacing:2px}
+
+.game{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+@media (max-width:820px){.game{grid-template-columns:minmax(0,1fr)}}
+
+/* Tower */
+.tower{display:flex;flex-direction:column;align-items:center;min-width:0}
+.roof{width:min(100%,520px);background:var(--plum);border-radius:14px 14px 0 0;padding:10px 12px 8px;text-align:center;position:relative}
+.roof .sign{font-family:var(--display);color:var(--gold);font-size:18px;letter-spacing:.06em}
+.build{width:min(100%,520px);margin-bottom:8px;border:3px dashed rgba(239,233,247,.45);background:rgba(255,255,255,.05);color:var(--lilac);border-radius:14px;padding:12px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.build:hover:not(:disabled){background:rgba(255,255,255,.1);border-color:var(--gold)}
+.build:disabled{opacity:.5;cursor:not-allowed}
+.price{font-family:var(--display);font-weight:400;color:var(--gold);white-space:nowrap}
+.floors{width:min(100%,520px);display:flex;flex-direction:column}
+.floor{background:var(--facade);border-left:10px solid var(--plum);border-right:10px solid var(--plum);border-bottom:6px solid var(--facade-d);padding:10px 8px;display:grid;grid-template-columns:28px repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+.fnum{font-family:var(--display);color:var(--plum);font-size:14px;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg)}
+
+.room{position:relative;border-radius:8px;border:3px solid var(--plum);background:var(--glass);min-height:86px;padding:6px 6px 14px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;text-align:left;color:var(--ink);overflow:hidden;transition:transform .12s}
+.room:hover{transform:translateY(-2px)}
+.room.sel{box-shadow:0 0 0 3px var(--gold)}
+.room .rname{font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.room .pips{font-size:9px;letter-spacing:1px;color:var(--gold-d)}
+.room .tag{font-size:11px;font-weight:800;color:var(--muted)}
+.room .bar{position:absolute;left:0;bottom:0;height:6px;background:var(--plum);opacity:.8;width:0}
+.room.busy{background:#ffd47a}
+.room.busy .guest{position:absolute;right:8px;bottom:12px;width:16px;height:24px;border-radius:8px 8px 3px 3px;background:var(--g,#7a5bd6)}
+.room.busy .guest::before{content:"";position:absolute;left:3px;top:-10px;width:10px;height:10px;border-radius:50%;background:var(--g,#7a5bd6)}
+.room.paid{background:#fff3c9}
+.room.paid .coin{position:absolute;right:8px;bottom:12px;width:26px;height:26px;border-radius:50%;background:var(--gold);border:3px solid var(--gold-d);animation:bob 1s ease-in-out infinite;display:grid;place-items:center;font-family:var(--display);font-size:11px;color:var(--plum)}
+.room.dirty{background:#b9b2a6}
+.room.dirty .tag{color:var(--plum)}
+.room.dirty::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 60%,rgba(80,60,40,.25) 0 6px,transparent 7px),radial-gradient(circle at 70% 40%,rgba(80,60,40,.2) 0 4px,transparent 5px),radial-gradient(circle at 55% 75%,rgba(80,60,40,.2) 0 5px,transparent 6px);pointer-events:none}
+.room.cleaning{background:#cfe9ff}
+@keyframes bob{50%{transform:translateY(-4px)}}
+
+.lobby{width:min(100%,560px);background:var(--plum);border-radius:0 0 10px 10px;padding:12px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.bell{background:var(--gold);color:var(--plum);border-radius:12px;padding:10px 12px;font-family:var(--display);font-size:13px;box-shadow:0 4px 0 var(--gold-d);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:92px}
+.bell small{font-family:var(--body);font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bell:active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-d)}
+.bell:disabled{opacity:.5;cursor:not-allowed}
+.queue-wrap{min-width:0}
+.qlabel{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--facade);margin-bottom:6px;display:flex;justify-content:space-between}
+.queue{display:flex;gap:6px;flex-wrap:wrap;min-height:38px;align-items:flex-end}
+.qg{position:relative;width:16px;height:22px;border-radius:7px 7px 3px 3px;background:var(--g);margin-top:12px}
+.qg::before{content:"";position:absolute;left:3px;top:-11px;width:10px;height:10px;border-radius:50%;background:var(--g)}
+.qg::after{content:"";position:absolute;left:0;bottom:-6px;height:3px;width:calc(var(--p)*16px);background:var(--bad);border-radius:2px}
+.street{width:min(100%,600px);height:12px;background:#1a1426;border-radius:0 0 6px 6px}
+.msg{min-height:22px;margin-top:10px;font-weight:700;color:var(--glass);text-align:center;font-size:13px}
+
+/* Ledger */
+.ledger{background:var(--lilac);color:var(--ink);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:16px;position:sticky;top:max(12px,env(safe-area-inset-top,0px))}
+@media (max-width:820px){.ledger{position:static}}
+.ledger h2{font-family:var(--display);font-weight:400;font-size:15px;margin:0 0 8px;color:var(--plum);letter-spacing:.03em}
+.group{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;background:#fff;border-radius:10px;padding:10px 12px;border:2px solid var(--lilac-d)}
+.item .nm{font-weight:900;font-size:14px}
+.item .ds{font-size:12px;color:var(--muted);grid-column:1}
+.item .lv{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.buy{grid-row:1/span 3;grid-column:2;background:var(--plum);color:var(--gold);border-radius:9px;padding:8px 10px;font-family:var(--display);font-size:13px;min-width:78px;box-shadow:0 3px 0 #170e1e}
+.buy:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #170e1e}
+.buy:disabled{background:var(--lilac-d);color:var(--muted);box-shadow:none;cursor:not-allowed}
+.selbox{background:#fff;border-radius:10px;padding:12px;border:2px dashed var(--lilac-d);font-size:13px;color:var(--muted)}
+.selbox strong{color:var(--ink)}
+.foot{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
+.reset{background:none;color:var(--muted);text-decoration:underline;font-size:11px;padding:4px}
+.confirm{display:flex;gap:6px;align-items:center}
+.confirm button{border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px}
+.confirm .yes{background:var(--bad);color:#fff}
+.confirm .no{background:var(--lilac-d);color:var(--ink)}
+
+.float{position:fixed;pointer-events:none;font-family:var(--display);color:var(--gold);text-shadow:2px 2px 0 var(--plum);font-size:16px;animation:rise 1s ease-out forwards;z-index:20}
+@keyframes rise{to{transform:translateY(-44px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.room.paid .coin{animation:none}.float{animation-duration:.01s}.room{transition:none}}
+</style>
+
+<header class="hud">
+  <div class="brand">Bellhop Tower<small>Grow a hotel, one floor at a time</small></div>
+  <div class="stats">
+    <div class="stat coins"><b id="sCoins">0</b><span>Coins</span></div>
+    <div class="stat"><b class="stars" id="sStars">★</b><span>Rating</span></div>
+    <div class="stat"><b id="sServed">0</b><span>Guests served</span></div>
+    <div class="stat"><b id="sRate">0</b><span>Coins / min</span></div>
+  </div>
+</header>
+
+<main class="game">
+  <section class="tower" aria-label="Your hotel">
+    <button class="build" id="buildBtn"><span>+ Build a new floor (3 rooms)</span><span class="price" id="buildCost"></span></button>
+    <div class="roof"><div class="sign">BELLHOP TOWER</div></div>
+    <div class="floors" id="floors"></div>
+    <div class="lobby">
+      <button class="bell" id="bell">DING!<small>Check in</small></button>
+      <div class="queue-wrap">
+        <div class="qlabel"><span>Lobby line</span><span id="qCount">0 / 4</span></div>
+        <div class="queue" id="queue"></div>
+      </div>
+    </div>
+    <div class="street"></div>
+    <div class="msg" id="msg">Ring the bell to check in your first guest.</div>
+  </section>
+
+  <aside class="ledger" aria-label="Upgrades">
+    <div>
+      <h2>Selected room</h2>
+      <div class="selbox" id="selbox">Tap a clean, empty room to see its upgrade.</div>
+    </div>
+    <div>
+      <h2>Staff</h2>
+      <div class="group" id="staff"></div>
+    </div>
+    <div>
+      <h2>Hotel</h2>
+      <div class="group" id="hotel"></div>
+    </div>
+    <div class="foot"><span>Progress saves in this browser.</span><span id="resetArea"><button class="reset" id="resetBtn">Start over</button></span></div>
+  </aside>
+</main>
+
+<script>
+const ROOMS=[
+  {name:"Cot",pay:12,stay:6},
+  {name:"Standard",pay:30,stay:7},
+  {name:"Deluxe",pay:72,stay:8},
+  {name:"Suite",pay:170,stay:9},
+  {name:"Penthouse",pay:400,stay:10},
+];
+const STAFF=[
+  {id:"desk",name:"Receptionist",desc:"Checks guests in for you",base:120,mult:2.1,max:8},
+  {id:"clean",name:"Housekeeper",desc:"Cleans dirty rooms on their own",base:180,mult:2.1,max:8},
+  {id:"bell",name:"Bellhop",desc:"Collects coins from rooms",base:300,mult:2.2,max:8},
+];
+const HOTEL=[
+  {id:"lobby",name:"Bigger lobby",desc:"+2 spots in line, guests wait longer",base:100,mult:2,max:6},
+  {id:"ads",name:"Billboard ads",desc:"Guests arrive more often",base:80,mult:1.9,max:8},
+  {id:"spa",name:"Rooftop pool",desc:"+15% on every bill",base:600,mult:2.6,max:5},
+];
+const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+"B":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e4?(n/1e3).toFixed(1)+"k":Math.floor(n).toLocaleString();
+const cost=(def,lvl)=>Math.round(def.base*Math.pow(def.mult,lvl));
+const floorCost=n=>Math.round(150*Math.pow(2.3,n-1));
+const roomUpCost=l=>Math.round(45*Math.pow(2.6,l));
+const hues=["#7a5bd6","#e2574c","#2f8fd8","#e88a2a","#c24fa3","#2b9d8f","#5c6bc0"];
+const newRoom=()=>({lvl:0,st:"free",t:0,dur:1,pay:0,g:null});
+
+let S;
+function fresh(){return{coins:40,served:0,walk:0,rep:3,floors:[[newRoom(),newRoom(),newRoom()]],queue:[],spawnT:2,staff:{desk:0,clean:0,bell:0},hotel:{lobby:0,ads:0,spa:0},timers:{desk:0,clean:0,bell:0},earnLog:[]}}
+function load(){try{const r=localStorage.getItem("bellhop-tower-v1");if(r)return JSON.parse(r)}catch(e){}return null}
+function save(){try{localStorage.setItem("bellhop-tower-v1",JSON.stringify(S))}catch(e){}}
+
+const $=id=>document.getElementById(id);
+let sel=null,msgT=0;
+function say(t){$("msg").textContent=t;msgT=4}
+function floatAt(el,txt){const r=el.getBoundingClientRect();const f=document.createElement("div");f.className="float";f.textContent=txt;f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top+8)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1000)}
+const stars=()=>Math.max(1,Math.min(5,Math.round(S.rep)));
+const queueCap=()=>4+S.hotel.lobby*2;
+const patience=()=>18+S.hotel.lobby*4;
+const spawnEvery=()=>Math.max(1.1,5.5-S.hotel.ads*0.55);
+const billMult=()=>(0.8+stars()*0.1)*(1+S.hotel.spa*0.15);
+
+function allRooms(){const a=[];S.floors.forEach((f,fi)=>f.forEach((r,ri)=>a.push([r,fi,ri])));return a}
+function checkIn(manual){
+  if(!S.queue.length){if(manual)say("Nobody's waiting in the lobby yet.");return false}
+  const free=allRooms().filter(([r])=>r.st==="free").sort((a,b)=>b[0].lvl-a[0].lvl)[0];
+  if(!free){if(manual)say("Every room is busy or dirty. Clean up or build another floor.");return false}
+  const g=S.queue.shift(),r=free[0];
+  r.st="busy";r.t=0;r.dur=ROOMS[r.lvl].stay;r.g=g.c;
+  S.rep=Math.min(5,S.rep+0.02);
+  return true;
+}
+function collect(r,el){
+  const amt=r.pay;S.coins+=amt;S.earnLog.push([Date.now(),amt]);r.pay=0;r.st="dirty";r.t=0;
+  if(el)floatAt(el,"+"+fmt(amt));
+}
+function startClean(r,speed){r.st="cleaning";r.t=0;r.dur=Math.max(0.6,2.2/speed)}
+
+// ---- Tower DOM ----
+let roomEls=[];
+function buildFloors(){
+  const wrap=$("floors");wrap.innerHTML="";roomEls=[];
+  for(let fi=S.floors.length-1;fi>=0;fi--){
+    const fl=document.createElement("div");fl.className="floor";
+    fl.innerHTML=`<div class="fnum">FL ${fi+1}</div>`;
+    S.floors[fi].forEach((r,ri)=>{
+      const b=document.createElement("button");b.className="room";b.id=`room-${fi}-${ri}`;
+      b.innerHTML=`<div><div class="rname"></div><div class="pips"></div></div><div class="tag"></div><span class="guest"></span><span class="coin">$</span><span class="bar"></span>`;
+      b.addEventListener("click",()=>tapRoom(fi,ri,b));
+      fl.appendChild(b);roomEls.push([b,fi,ri]);
+    });
+    wrap.appendChild(fl);
+  }
+}
+function tapRoom(fi,ri,el){
+  const r=S.floors[fi][ri];
+  if(r.st==="paid"){collect(r,el)}
+  else if(r.st==="dirty"){startClean(r,1);say("Scrubbing…")}
+  sel=[fi,ri];renderSel();
+}
+function paintRooms(){
+  for(const [b,fi,ri] of roomEls){
+    const r=S.floors[fi][ri],L=ROOMS[r.lvl];
+    b.className="room "+r.st+(sel&&sel[0]===fi&&sel[1]===ri?" sel":"");
+    b.querySelector(".rname").textContent=L.name;
+    b.querySelector(".pips").textContent="★".repeat(r.lvl+1);
+    const tag={free:"Vacant",busy:"Guest staying",paid:"Tap to collect",dirty:"Tap to clean",cleaning:"Cleaning…"}[r.st];
+    b.querySelector(".tag").textContent=tag;
+    b.querySelector(".coin").style.display=r.st==="paid"?"":"none";
+    b.querySelector(".guest").style.display=r.st==="busy"?"":"none";
+    if(r.g)b.style.setProperty("--g",r.g);
+    const bar=b.querySelector(".bar");
+    bar.style.width=(r.st==="busy"||r.st==="cleaning")?Math.min(100,r.t/r.dur*100)+"%":"0";
+    b.setAttribute("aria-label",`Floor ${fi+1} ${L.name}: ${tag}`);
+  }
+}
+function paintQueue(){
+  const q=$("queue");
+  while(q.children.length<S.queue.length){const d=document.createElement("span");d.className="qg";q.appendChild(d)}
+  while(q.children.length>S.queue.length)q.lastChild.remove();
+  S.queue.forEach((g,i)=>{const d=q.children[i];d.style.setProperty("--g",g.c);d.style.setProperty("--p",(g.w/patience()).toFixed(2))});
+  $("qCount").textContent=`${S.queue.length} / ${queueCap()}`;
+}
+
+// ---- Ledger ----
+function shopItem(def,group){
+  const lvl=S[group][def.id],maxed=lvl>=def.max,c=cost(def,lvl);
+  return `<div class="item"><div class="nm">${def.name}</div><div class="ds">${def.desc}</div><div class="lv">Level ${lvl} / ${def.max}</div>
+  <button class="buy" id="buy-${def.id}" data-g="${group}" data-id="${def.id}" ${maxed||S.coins<c?"disabled":""}>${maxed?"MAX":fmt(c)}</button></div>`;
+}
+function renderShop(){
+  $("staff").innerHTML=STAFF.map(d=>shopItem(d,"staff")).join("");
+  $("hotel").innerHTML=HOTEL.map(d=>shopItem(d,"hotel")).join("");
+}
+function refreshShopButtons(){
+  [...STAFF.map(d=>[d,"staff"]),...HOTEL.map(d=>[d,"hotel"])].forEach(([d,g])=>{
+    const b=$("buy-"+d.id);if(!b)return;const lvl=S[g][d.id];b.disabled=lvl>=d.max||S.coins<cost(d,lvl);
+  });
+  const nb=floorCost(S.floors.length);$("buildCost").textContent=fmt(nb);$("buildBtn").disabled=S.coins<nb||S.floors.length>=12;
+  if(S.floors.length>=12)$("buildCost").textContent="MAX";
+  const ub=$("upRoom");if(ub&&sel){const r=S.floors[sel[0]][sel[1]];ub.disabled=r.lvl>=4||r.st!=="free"||S.coins<roomUpCost(r.lvl)}
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest(".buy");if(b&&!b.disabled){
+    const defs=b.dataset.g==="staff"?STAFF:HOTEL,d=defs.find(x=>x.id===b.dataset.id),lvl=S[b.dataset.g][d.id],c=cost(d,lvl);
+    if(S.coins>=c&&lvl<d.max){S.coins-=c;S[b.dataset.g][d.id]++;say(`${d.name} upgraded to level ${lvl+1}.`);renderShop();save()}
+  }
+});
+function renderSel(){
+  const box=$("selbox");
+  if(!sel){box.innerHTML="Tap a clean, empty room to see its upgrade.";return}
+  const r=S.floors[sel[0]][sel[1]],L=ROOMS[r.lvl],N=ROOMS[r.lvl+1];
+  let h=`<strong>Floor ${sel[0]+1} · ${L.name}</strong><br>Bill ${fmt(L.pay*billMult())} coins · ${L.stay}s stay`;
+  if(N){h+=`<div class="item" style="margin-top:10px"><div class="nm">Remodel to ${N.name}</div><div class="ds">Bill rises to ${fmt(N.pay*billMult())}${r.st!=="free"?" · room must be vacant and clean":""}</div><div class="lv">Room level ${r.lvl+1} / 5</div><button class="buy" id="upRoom">${fmt(roomUpCost(r.lvl))}</button></div>`}
+  else h+=`<br><strong>Fully remodeled.</strong>`;
+  box.innerHTML=h;
+  const ub=$("upRoom");if(ub)ub.addEventListener("click",()=>{
+    const c=roomUpCost(r.lvl);if(r.st==="free"&&r.lvl<4&&S.coins>=c){S.coins-=c;r.lvl++;say(`Remodeled into a ${ROOMS[r.lvl].name}!`);renderSel();save()}
+  });
+  refreshShopButtons();
+}
+
+$("buildBtn").addEventListener("click",()=>{
+  const c=floorCost(S.floors.length);
+  if(S.coins>=c&&S.floors.length<12){S.coins-=c;S.floors.push([newRoom(),newRoom(),newRoom()]);buildFloors();say(`Floor ${S.floors.length} is open for business.`);save()}
+});
+$("bell").addEventListener("click",()=>{if(checkIn(true))say("Welcome to Bellhop Tower!")});
+function wireReset(){
+  $("resetBtn").addEventListener("click",()=>{
+    $("resetArea").innerHTML=`<span class="confirm">Erase everything? <button class="yes" id="rYes">Erase</button><button class="no" id="rNo">Keep</button></span>`;
+    $("rYes").onclick=()=>{S=fresh();sel=null;buildFloors();renderShop();renderSel();save();restoreReset();say("Fresh start. Ring the bell!")};
+    $("rNo").onclick=restoreReset;
+  });
+}
+function restoreReset(){$("resetArea").innerHTML=`<button class="reset" id="resetBtn">Start over</button>`;wireReset()}
+
+// ---- Loop ----
+let last=performance.now(),saveT=0;
+function tick(now){
+  const dt=Math.min(0.5,(now-last)/1000);last=now;
+  // arrivals
+  S.spawnT-=dt;
+  if(S.spawnT<=0){S.spawnT=spawnEvery()*(0.7+Math.random()*0.6);
+    if(S.queue.length<queueCap())S.queue.push({c:hues[Math.floor(Math.random()*hues.length)],w:0});
+  }
+  // patience
+  for(let i=S.queue.length-1;i>=0;i--){S.queue[i].w+=dt;if(S.queue[i].w>=patience()){S.queue.splice(i,1);S.walk++;S.rep=Math.max(1,S.rep-0.25);say("A guest got tired of waiting and left. Your rating dipped.")}}
+  // rooms
+  for(const [r] of allRooms()){
+    if(r.st==="busy"||r.st==="cleaning"){r.t+=dt;
+      if(r.t>=r.dur){
+        if(r.st==="busy"){r.st="paid";r.pay=Math.round(ROOMS[r.lvl].pay*billMult());r.g=null;S.served++}
+        else{r.st="free"}
+      }
+    }
+  }
+  // staff
+  const T=S.timers;
+  if(S.staff.desk){T.desk+=dt;const iv=Math.max(0.6,3.2/S.staff.desk);if(T.desk>=iv){T.desk=0;checkIn(false)}}
+  if(S.staff.clean){T.clean+=dt;const iv=Math.max(0.5,4/S.staff.clean);if(T.clean>=iv){T.clean=0;const d=allRooms().find(([r])=>r.st==="dirty");if(d)startClean(d[0],1+S.staff.clean*0.5)}}
+  if(S.staff.bell){T.bell+=dt;const iv=Math.max(0.5,3.5/S.staff.bell);if(T.bell>=iv){T.bell=0;const p=allRooms().find(([r])=>r.st==="paid");if(p){const el=$(`room-${p[1]}-${p[2]}`);collect(p[0],el)}}}
+  // HUD
+  const cut=Date.now()-60000;S.earnLog=S.earnLog.filter(e=>e[0]>cut);
+  $("sCoins").textContent=fmt(S.coins);$("sServed").textContent=fmt(S.served);
+  $("sStars").textContent="★".repeat(stars())+"☆".repeat(5-stars());
+  $("sRate").textContent=fmt(S.earnLog.reduce((a,e)=>a+e[1],0));
+  $("bell").disabled=!S.queue.length;
+  if(msgT>0){msgT-=dt;if(msgT<=0)$("msg").textContent=hint()}
+  paintRooms();paintQueue();refreshShopButtons();
+  saveT+=dt;if(saveT>3){saveT=0;save()}
+  requestAnimationFrame(tick);
+}
+function hint(){
+  if(S.served<3)return"Ring the bell to check guests in, then tap rooms to collect and clean.";
+  if(!S.staff.desk)return"Tip: hire a Receptionist so guests check in on their own.";
+  if(S.floors.length<2)return"Tip: a second floor doubles your rooms.";
+  return"";
+}
+
+function start(data){
+  S=(data&&data.state)||load()||fresh();
+  buildFloors();renderShop();renderSel();wireReset();
+  $("msg").textContent=hint();
+  requestAnimationFrame(t=>{last=t;tick(t)});
+}
+window.claude?.hot?.snapshot?.(()=>({state:S}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body></html>
